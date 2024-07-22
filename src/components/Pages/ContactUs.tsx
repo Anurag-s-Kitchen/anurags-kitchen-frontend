@@ -25,13 +25,14 @@ export default function ContactUs() {
 
 
   const [disabled, setDisabled] = useState(false);
-  const [reload, setReload] = useState(false);
 
   const [dateValue, setDateValue] = useState(dayjs().format("YYYY-MM-DD"));
   const [timeValue, setTimeValue] = useState(timeList[0]);
   const [guest, setguest] = useState(1);
   const [message, setMessage] = useState("");
 
+  const myFormRef: React.MutableRefObject<HTMLFormElement | undefined> = React.useRef();
+  
   const onTimeChange = (e: any) => {
 
     console.log(e.target.value);
@@ -55,9 +56,8 @@ export default function ContactUs() {
   }
 
 
-  const openSnackBar = (reload: boolean) => {
+  const openSnackBar = () => {
     setOpen(true);
-    setReload(reload);
   };
 
   const handleClose = (_: React.SyntheticEvent | Event, reason?: string) => {
@@ -66,7 +66,6 @@ export default function ContactUs() {
     }
 
     setOpen(false);
-    if (reload) window.location.reload();
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -88,7 +87,7 @@ export default function ContactUs() {
     if (!raw.email || !raw.phone || !raw.firstName || !raw.lastName || !raw.date || !raw.time || !raw.guestCount) {
 
       setMessage("Fill all required fields");
-      openSnackBar(false);
+      openSnackBar();
       return;
     }
 
@@ -107,7 +106,9 @@ export default function ContactUs() {
 
     }).finally(() => {
 
-      openSnackBar(true);
+      openSnackBar();
+      myFormRef.current?.reset();
+      setDisabled(false);
     });
 
   }
@@ -143,7 +144,7 @@ export default function ContactUs() {
             </Typography>
 
           </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <Box component="form" ref={myFormRef}  noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField

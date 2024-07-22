@@ -1,0 +1,11 @@
+.image {
+    z-index: 0;
+    /* position: absolute; */
+}
+
+.image:hover {
+
+    z-index: 100;
+    scale: 1.1;
+    transition: all 200ms;
+}

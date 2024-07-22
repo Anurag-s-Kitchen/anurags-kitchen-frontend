@@ -19,15 +19,15 @@ const timeList = (new Array(23))
   .filter((n) => n > 8)
   .map((n) => n.toString().length == 1 ? "0" + n.toString() + ":00" : n.toString() + ":00");
 
+const defaultDate = dayjs().add(1, "day").format("YYYY-MM-DD");
+const defaultTime = timeList[0];
+
 export default function ContactUs() {
 
   const [open, setOpen] = useState(false);
 
-
-  const [disabled, setDisabled] = useState(false);
-
-  const [dateValue, setDateValue] = useState(dayjs().format("YYYY-MM-DD"));
-  const [timeValue, setTimeValue] = useState(timeList[0]);
+  const [dateValue, setDateValue] = useState(defaultDate);
+  const [timeValue, setTimeValue] = useState(defaultTime);
   const [guest, setguest] = useState(1);
   const [message, setMessage] = useState("");
 
@@ -42,7 +42,15 @@ export default function ContactUs() {
 
   const onDateChange = (e: any) => {
 
-    if (e.target.value < 1) return;
+    const today = dayjs(dayjs().format("YYYY-MM-DD"));
+    const selected = dayjs(e.target.value);
+
+    if (selected.diff(today) <= 0) {
+
+      setMessage("Please choose a future date");
+      openSnackBar();
+      return;
+    }
 
     setDateValue(e.target.value);
   }
@@ -50,7 +58,7 @@ export default function ContactUs() {
 
   const onGuestChange = (e: any) => {
 
-    if (e.target.value < 1) return;
+    if (e.target.value && e.target.value < 1) return;
 
     setguest(e.target.value);
   }
@@ -84,6 +92,8 @@ export default function ContactUs() {
       message: data.get('message') ? data.get('message')?.toString() : '',
     }
 
+    console.log(!raw.guestCount);
+
     if (!raw.email || !raw.phone || !raw.firstName || !raw.lastName || !raw.date || !raw.time || !raw.guestCount) {
 
       setMessage("Fill all required fields");
@@ -95,20 +105,21 @@ export default function ContactUs() {
     
     emailjs.send(import.meta.env.VITE_EMAIL_SERVICE_ID, import.meta.env.VITE_EMAIL_TEMPLATE_ID, raw, import.meta.env.VITE_EMAIL_USER_ID).then(() => {
 
-      setDisabled(true);
       setMessage("Message sent");
 
     }, (error) => {
 
       console.log(error.text);
-      setDisabled(true);
       setMessage("Some error occurred");
 
     }).finally(() => {
 
       openSnackBar();
       myFormRef.current?.reset();
-      setDisabled(false);
+      
+      setDateValue(defaultDate);
+      setTimeValue(defaultTime);
+      setguest(1);
     });
 
   }
@@ -148,7 +159,6 @@ export default function ContactUs() {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  disabled={disabled}
                   autoComplete="given-name"
                   name="firstName"
                   required
@@ -160,7 +170,6 @@ export default function ContactUs() {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  disabled={disabled}
                   required
                   fullWidth
                   id="lastName"
@@ -171,7 +180,6 @@ export default function ContactUs() {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  disabled={disabled}
                   required
                   fullWidth
                   id="email"
@@ -182,7 +190,6 @@ export default function ContactUs() {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  disabled={disabled}
                   required
                   fullWidth
                   id="phone"
@@ -200,7 +207,6 @@ export default function ContactUs() {
                 </InputLabel>
 
                 <TextField
-                  disabled={disabled}
                   required
                   fullWidth
                   // variant='filled'
@@ -237,7 +243,6 @@ export default function ContactUs() {
 
               <Grid item xs={12}>
                 <TextField
-                  disabled={disabled}
                   required
                   fullWidth
                   id="guest"
@@ -252,7 +257,6 @@ export default function ContactUs() {
 
               <Grid item xs={12}>
                 <TextField
-                  disabled={disabled}
                   fullWidth
                   multiline
                   name="message"
